@@ -1,15 +1,38 @@
+
 package com.example.cloth_recommender;
 
+import android.app.Activity;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.os.Bundle;
+import android.util.Base64;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
-import android.os.Bundle;
-import android.view.View;
-
+import com.bumptech.glide.Glide;
 import com.example.cloth_recommender.Frag1.Frag1;
 import com.example.cloth_recommender.Frag2.Frag2;
-import com.example.cloth_recommender.Frag3.Frag3;
 import com.google.android.material.tabs.TabLayout;
+import com.kakao.network.ApiErrorCode;
+import com.kakao.network.ErrorResult;
+import com.kakao.usermgmt.UserManagement;
+import com.kakao.usermgmt.callback.LogoutResponseCallback;
+import com.kakao.usermgmt.callback.UnLinkResponseCallback;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -24,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        getHashKey();
+
         tabLayout=findViewById(R.id.tabs);
         viewPager=findViewById(R.id.view_pager);
         adapter=new FragmentAdapter(getSupportFragmentManager(),1);
@@ -31,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
         //FragmentAdapter에 컬렉션 담기
         adapter.addFragment(new Frag1());
         adapter.addFragment(new Frag2());
-        adapter.addFragment(new Frag3());
+        adapter.addFragment(new LoginActivity());
 
         //ViewPager Fragment 연결
         viewPager.setAdapter(adapter);
@@ -60,5 +85,26 @@ public class MainActivity extends AppCompatActivity {
         //tabLayout.addTab(tabLayout.newTab().setCustomView(view3));
 
 
+    }
+
+    private void getHashKey(){
+        PackageInfo packageInfo = null;
+        try {
+            packageInfo = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_SIGNATURES);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        if (packageInfo == null)
+            Log.e("KeyHash", "KeyHash:null");
+
+        for (Signature signature : packageInfo.signatures) {
+            try {
+                MessageDigest md = MessageDigest.getInstance("SHA");
+                md.update(signature.toByteArray());
+                Log.d("KeyHash", Base64.encodeToString(md.digest(), Base64.DEFAULT));
+            } catch (NoSuchAlgorithmException e) {
+                Log.e("KeyHash", "Unable to get MessageDigest. signature=" + signature, e);
+            }
+        }
     }
 }
